@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pie Pomodoro 2026</title>
+    <style>
+        :root {
+            --bg-color: #ba4949;
+            --pie-color: rgb(255, 255, 255);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            transition: background-color 0.5s ease;
+        }
+
+        .container {
+            text-align: center;
+            color: white;
+        }
+
+        /* The Pie Chart / Clock Visual */
+        .timer-circle {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #timer-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .timer-display {
+            font-size: 60px;
+            font-weight: bold;
+            z-index: 2;
+            position: relative;
+        }
+
+        .mode-selection {
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            background: rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 15px;
+            margin: 0 5px;
+            cursor: pointer;
+            border-radius: 20px;
+        }
+
+        .mode-btn.active {
+            background: white;
+            color: var(--bg-color);
+        }
+
+        /* Start Button at the bottom */
+        #start-btn {
+            background: white;
+            color: var(--bg-color);
+            border: none;
+            padding: 15px 60px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 5px #ddd;
+        }
+
+        #start-btn:active {
+            box-shadow: none;
+            transform: translateY(5px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="mode-selection">
+        <button class="mode-btn active" onclick="setTimer(25, 'pomodoro', this)">Pomodoro</button>
+        <button class="mode-btn" onclick="setTimer(5, 'short', this)">Short Break</button>
+        <button class="mode-btn" onclick="setTimer(10, 'long', this)">Long Break</button>
+    </div>
+
+    <!-- The Pie Visual -->
+    <div class="timer-circle" id="pie-visual">
+        <canvas id="timer-canvas" width="300" height="300"></canvas>
+        <div class="timer-display" id="timer-text">25:00</div>
+    </div>
+
+    <button id="start-btn" onclick="toggleTimer()">START</button>
+</div>
+
+<script>
+    let totalSeconds = 25 * 60;
+    let timeLeft = totalSeconds;
+    let timerId = null;
+    let currentMode = 'pomodoro';
+
+    const timerText = document.getElementById('timer-text');
+    const pieVisual = document.getElementById('pie-visual');
+    const canvas = document.getElementById('timer-canvas');
+    const ctx = canvas.getContext('2d');
+    const startBtn = document.getElementById('start-btn');
+
+    function drawCircle() {
+        const radius = 140;
+        const centerX = 150;
+        const centerY = 150;
+        const elapsedPercent = ((totalSeconds - timeLeft) / totalSeconds);
+        const endAngle = (elapsedPercent * 2 * Math.PI) - Math.PI / 2;
+
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw background circle
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+        ctx.strokeStyle = 'rgba(0,0,0, 0.3)';
+        ctx.lineWidth = 10;
+        ctx.stroke();
+
+        // Draw progress arc
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, -Math.PI / 2, endAngle);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.94)';
+        ctx.lineWidth = 16;
+        ctx.stroke();
+    }
+
+    function updateUI() {
+        // Update Text
+        const mins = Math.floor(timeLeft / 60);
+        const secs = timeLeft % 60;
+        timerText.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+        // Draw circle
+        drawCircle();
+    }
+
+    function setTimer(minutes, mode, element) {
+        clearInterval(timerId);
+        timerId = null;
+        startBtn.innerText = 'START';
+        
+        totalSeconds = minutes * 60;
+        timeLeft = totalSeconds;
+        currentMode = mode;
+
+        // Change Theme Colors
+        const colors = { 'pomodoro': '#ba4949', 'short': '#38858a', 'long': '#397097' };
+        document.documentElement.style.setProperty('--bg-color', colors[mode]);
+        
+        // UI Updates
+        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+        element.classList.add('active');
+        updateUI();
+    }
+
+    function toggleTimer() {
+        if (timerId) {
+            clearInterval(timerId);
+            timerId = null;
+            startBtn.innerText = 'START';
+        } else {
+            startBtn.innerText = 'STOP';
+            timerId = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateUI();
+                } else {
+                    clearInterval(timerId);
+                    alert("Session Complete!");
+                }
+            }, 1000);
+        }
+    }
+
+    // Initialize display
+    updateUI();
+</script>
+
+</body>
+</html>
